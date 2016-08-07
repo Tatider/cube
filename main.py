@@ -273,7 +273,7 @@ class ManualControlPanel(wx.Panel):
         self.device.go_orange()
 
     def OnBlinkButton(self, event):
-        self.device.blink()
+        self.device.slow_blink()
 
     def ActivateMode(self):
         pass

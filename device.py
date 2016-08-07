@@ -72,6 +72,15 @@ class CubeDevice(object):
             self.go_orange()
             sleep(0.1)
 
+    def slow_blink(self):
+        for i in xrange(10):
+            self.go_red()
+            sleep(0.5)
+            self.go_green()
+            sleep(0.5)
+            self.go_orange()
+            sleep(0.5)
+
     def connect(self, port):
         self.board = Arduino(port)
         for p in self.green_pins + self.red_pins + self.orange_pins:
