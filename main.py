@@ -247,16 +247,20 @@ class ManualControlPanel(wx.Panel):
         self.orange_button = wx.Button(self, label=u'Оранжевый')
         self.blink_button = wx.Button(self, label=u'Blink')
 
+        self.red_button.SetBackgroundColour(wx.Colour(250, 128, 114))
+        self.green_button.SetBackgroundColour(wx.Colour(152, 251, 152))
+        self.orange_button.SetBackgroundColour(wx.Colour(255, 165, 0))
+
         self.red_button.Bind(wx.EVT_BUTTON, self.OnRedButton)
         self.green_button.Bind(wx.EVT_BUTTON, self.OnGreenButton)
         self.orange_button.Bind(wx.EVT_BUTTON, self.OnOrangeButton)
         self.blink_button.Bind(wx.EVT_BUTTON, self.OnBlinkButton)
 
         box = wx.GridSizer(2, 2)
-        box.Add(self.red_button, flag=wx.EXPAND | wx.BOTTOM, border=5)
-        box.Add(self.green_button, flag=wx.EXPAND | wx.BOTTOM, border=5)
-        box.Add(self.orange_button, flag=wx.EXPAND | wx.BOTTOM, border=5)
-        box.Add(self.blink_button, flag=wx.EXPAND | wx.BOTTOM, border=5)
+        box.Add(self.red_button, flag=wx.EXPAND | wx.BOTTOM, border=2)
+        box.Add(self.green_button, flag=wx.EXPAND | wx.BOTTOM, border=2)
+        box.Add(self.orange_button, flag=wx.EXPAND | wx.BOTTOM, border=2)
+        box.Add(self.blink_button, flag=wx.EXPAND | wx.BOTTOM, border=2)
         self.SetSizer(box)
 
     def OnRedButton(self, event):
