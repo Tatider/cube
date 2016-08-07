@@ -244,13 +244,19 @@ class ManualControlPanel(wx.Panel):
     def InitUI(self):
         self.red_button = wx.Button(self, label=u'Красный')
         self.green_button = wx.Button(self, label=u'Зелёный')
+        self.orange_button = wx.Button(self, label=u'Оранжевый')
+        self.blink_button = wx.Button(self, label=u'Blink')
 
         self.red_button.Bind(wx.EVT_BUTTON, self.OnRedButton)
         self.green_button.Bind(wx.EVT_BUTTON, self.OnGreenButton)
+        self.orange_button.Bind(wx.EVT_BUTTON, self.OnOrangeButton)
+        self.blink_button.Bind(wx.EVT_BUTTON, self.OnBlinkButton)
 
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(self.red_button, 1, wx.EXPAND | wx.BOTTOM, 10)
-        box.Add(self.green_button, 1, wx.EXPAND | wx.BOTTOM, 10)
+        box = wx.GridSizer(2, 2)
+        box.Add(self.red_button, flag=wx.EXPAND | wx.BOTTOM, border=5)
+        box.Add(self.green_button, flag=wx.EXPAND | wx.BOTTOM, border=5)
+        box.Add(self.orange_button, flag=wx.EXPAND | wx.BOTTOM, border=5)
+        box.Add(self.blink_button, flag=wx.EXPAND | wx.BOTTOM, border=5)
         self.SetSizer(box)
 
     def OnRedButton(self, event):
@@ -258,6 +264,12 @@ class ManualControlPanel(wx.Panel):
 
     def OnGreenButton(self, event):
         self.device.go_green()
+
+    def OnOrangeButton(self, event):
+        self.device.go_orange()
+
+    def OnBlinkButton(self, event):
+        self.device.blink()
 
     def ActivateMode(self):
         pass

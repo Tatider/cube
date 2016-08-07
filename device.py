@@ -9,8 +9,9 @@ from pyfirmata import Arduino, OUTPUT
 
 
 class CubeDevice(object):
-    green_pins = [5, 9]
-    red_pins = [6, 10]
+    green_pins = [6]
+    red_pins = [5]
+    orange_pins = [9, 10]
 
     def __init__(self):
         self.board = None
@@ -49,11 +50,18 @@ class CubeDevice(object):
 
     def go_green(self):
         self._write_pins(self.red_pins, 0)
+        self._write_pins(self.orange_pins, 0)
         self._write_pins(self.green_pins, 1)
 
     def go_red(self):
         self._write_pins(self.green_pins, 0)
+        self._write_pins(self.orange_pins, 0)
         self._write_pins(self.red_pins, 1)
+
+    def go_orange(self):
+        self._write_pins(self.green_pins, 0)
+        self._write_pins(self.red_pins, 0)
+        self._write_pins(self.orange_pins, 1)
 
     def blink(self):
         for i in xrange(5):
@@ -61,10 +69,12 @@ class CubeDevice(object):
             sleep(0.1)
             self.go_green()
             sleep(0.1)
+            self.go_orange()
+            sleep(0.1)
 
     def connect(self, port):
         self.board = Arduino(port)
-        for p in self.green_pins + self.red_pins:
+        for p in self.green_pins + self.red_pins + self.orange_pins:
             self.board.digital[p].mode = OUTPUT
 
     def disconnect(self):
@@ -72,3 +82,4 @@ class CubeDevice(object):
             return
         self._write_pins(self.red_pins, 0)
         self._write_pins(self.green_pins, 0)
+        self._write_pins(self.orange_pins, 0)
