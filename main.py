@@ -230,7 +230,10 @@ class SlackPanel(MailPanel):
         res = super(SlackPanel, self).CreateCredentialsUI()
         self.password_label.Hide()
         self.password_input.Hide()
-        self.login_label.LabelText = u'Slack токен'
+        try:
+            self.login_label.LabelText = u'Slack токен'
+        except AttributeError:
+            self.login_label.SetLabel(u'Slack токен')
         return res
 
 
