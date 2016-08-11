@@ -200,7 +200,18 @@ class OdooMode(ImapMode):
         self._database = None
         self._prev_count_of_tasks = 0
         self._prev_count_of_issues = 0
+        self._init_logging()
         super(OdooMode, self).__init__(device, interval)
+
+    def _init_logging(self):
+        logger = logging.getLogger(OdooMode.__name__)
+        logger.setLevel(logging.DEBUG)
+        console_handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - - %(levelname)s: '
+                                      '%(message)s')
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+        self._logger = logger
 
     def set_host_port_database(self, host, port, database):
         """Set host, port and database for connection"""
@@ -219,7 +230,8 @@ class OdooMode(ImapMode):
                     tasks,
                     issues,
                 )
-            except RPCError:
+            except RPCError as e:
+                self._logger.error('Got a problem in function "loop"!', exc_info=True)
                 message = u"Ошибка соединения с базой данных"
 
             self.set_status(message)
@@ -245,24 +257,28 @@ class OdooMode(ImapMode):
                 self.set_status(u"{} ~ {:.0f}".format(message, countdown))
 
     def _fetch_unread_count(self):
-        """Connect to the database and count unseen messages""" 
+        """Connect to the database and count unseen messages"""
         connection = oerplib.OERP(self._host, protocol='xmlrpc', port=self._port)
+        self._logger.info('Success connection')
         user = connection.login(self._login, self._password, self._database)
-        
+        self._logger.info('Success logging')
+
         try:
             tasks = connection.search(
                 'project.task',
                 [('message_unread','=',True)]
             )
-        except RPCError:
+        except RPCError as e:
+            self._logger.error('Got a problem with counting of tasks!', exc_info=True)
             tasks = []
-        
+
         try:
             issues = connection.search(
                 'project.issue',
                 [('message_unread','=',True)]
             )
-        except RPCError:
+        except RPCError as e:
+            self._logger.error('Got a problem with counting of issues!', exc_info=True)
             issues = []
 
         unseen = (len(tasks), len(issues),)
