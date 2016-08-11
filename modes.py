@@ -198,6 +198,7 @@ class OdooMode(ImapMode):
 
     def __init__(self, device, interval=90):
         self._database = None
+        self._protocol = "xmlrpc+ssl"
         self._prev_count_of_tasks = 0
         self._prev_count_of_issues = 0
         self._init_logging()
@@ -213,9 +214,10 @@ class OdooMode(ImapMode):
         logger.addHandler(console_handler)
         self._logger = logger
 
-    def set_host_port_database(self, host, port, database):
+    def set_host_port_database_protocol(self, host, port, database, protocol="xmlrpc+ssl"):
         """Set host, port and database for connection"""
         self._database = database
+        self._protocol = protocol
         super(OdooMode, self).set_host_port(host, port)
 
     def loop(self):
@@ -258,7 +260,7 @@ class OdooMode(ImapMode):
 
     def _fetch_unread_count(self):
         """Connect to the database and count unseen messages"""
-        connection = oerplib.OERP(self._host, protocol='xmlrpc', port=self._port)
+        connection = oerplib.OERP(self._host, protocol=self._protocol, port=self._port)
         self._logger.info('Success connection')
         user = connection.login(self._login, self._password, self._database)
         self._logger.info('Success logging')

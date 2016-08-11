@@ -244,8 +244,8 @@ class SlackPanel(MailPanel):
 class OdooPanel(MailPanel):
 
     def ActivateMode(self):
-        if self.show_imap_host_port:
-            self.database_input.Enable()
+        self.database_input.Enable()
+        self.protocol_input.Enable()
         super(OdooPanel, self).ActivateMode()
 
     def CreateCredentialsUI(self):
@@ -276,6 +276,8 @@ class OdooPanel(MailPanel):
 
         self.database_input = wx.TextCtrl(cp)
         self.database_label = wx.StaticText(cp, label=u"База Данных")
+        self.protocol_input = wx.TextCtrl(cp)
+        self.protocol_label = wx.StaticText(cp, label=u"Протокол")
         self.login_input = wx.TextCtrl(cp)
         self.login_label = wx.StaticText(cp, label=u"Логин")
         self.password_input = wx.TextCtrl(cp, style=wx.TE_PASSWORD)
@@ -283,6 +285,9 @@ class OdooPanel(MailPanel):
         sizer.AddMany([
             (self.database_label, 0, wx.ALIGN_CENTRE_VERTICAL),
             (self.database_input, 1, wx.EXPAND),
+
+            (self.protocol_label, 0, wx.ALIGN_CENTRE_VERTICAL),
+            (self.protocol_input, 1, wx.EXPAND),
 
             (self.login_label, 0, wx.ALIGN_CENTRE_VERTICAL),
             (self.login_input, 1, wx.EXPAND),
@@ -297,10 +302,11 @@ class OdooPanel(MailPanel):
 
     def OnRunButton(self, event):
         if self.show_imap_host_port:
-            self.mode.set_host_port_database(
+            self.mode.set_host_port_database_protocol(
                 self.host_input.GetValue(),
                 self.port_input.GetValue(),
                 self.database_input.GetValue(),
+                self.protocol_input.GetValue(),
             )
 
         self.mode.set_credentials(
@@ -311,8 +317,9 @@ class OdooPanel(MailPanel):
         if self.show_imap_host_port:
             self.host_input.Disable()
             self.port_input.Disable()
-            self.database_input.Disable()
 
+        self.database_input.Disable()
+        self.protocol_input.Disable()
         self.login_input.Disable()
         self.password_input.Disable()
         self.run_button.Hide()
