@@ -83,6 +83,9 @@ class ActionPanel(wx.Panel):
         generic_imap_mode = modes.ImapMode(self.device)
         self.AddMode(u'Проверять почту через IMAP', MailPanel(self, generic_imap_mode, True))
 
+        odoo_mode = modes.OdooMode(self.device)
+        self.AddMode(u'Проверять письма Odoo', OdooPanel(self, odoo_mode, True))
+
         self.ShowPanel(u'Управлять вручную')
         self.SetSizer(self.sizer)
 
@@ -235,6 +238,96 @@ class SlackPanel(MailPanel):
         except AttributeError:
             self.login_label.SetLabel(u'Slack токен')
         return res
+
+
+#==============================================================================
+class OdooPanel(MailPanel):
+
+    def ActivateMode(self):
+        self.database_input.Enable()
+        self.protocol_input.Enable()
+        super(OdooPanel, self).ActivateMode()
+
+    def CreateCredentialsUI(self):
+        cp = wx.Panel(self)
+
+        sizer = wx.FlexGridSizer(rows=0, cols=2, vgap=10, hgap=10)
+        sizer.AddGrowableCol(1, 1)
+
+        if self.show_imap_host_port:
+            hbox = wx.BoxSizer(wx.HORIZONTAL)
+            hp_panel = wx.Panel(cp)
+
+            self.host_input = wx.TextCtrl(hp_panel)
+            self.port_input = wx.TextCtrl(hp_panel)
+            hbox.AddMany([
+                (self.host_input, 3, wx.EXPAND),
+
+                (wx.StaticText(hp_panel, label=u" Порт"), 0, wx.ALIGN_CENTRE_VERTICAL),
+                (self.port_input, 1, wx.EXPAND),
+            ])
+
+            hp_panel.SetSizer(hbox)
+
+            sizer.AddMany([
+                (wx.StaticText(cp, label=u"Хост"), 0, wx.ALIGN_CENTRE_VERTICAL),
+                (hp_panel, 1, wx.EXPAND),
+            ])
+
+        self.database_input = wx.TextCtrl(cp)
+        self.database_label = wx.StaticText(cp, label=u"База Данных")
+        self.protocol_input = wx.TextCtrl(cp)
+        self.protocol_label = wx.StaticText(cp, label=u"Протокол")
+        self.login_input = wx.TextCtrl(cp)
+        self.login_label = wx.StaticText(cp, label=u"Логин")
+        self.password_input = wx.TextCtrl(cp, style=wx.TE_PASSWORD)
+        self.password_label = wx.StaticText(cp, label=u"Пароль")
+        sizer.AddMany([
+            (self.database_label, 0, wx.ALIGN_CENTRE_VERTICAL),
+            (self.database_input, 1, wx.EXPAND),
+
+            (self.protocol_label, 0, wx.ALIGN_CENTRE_VERTICAL),
+            (self.protocol_input, 1, wx.EXPAND),
+
+            (self.login_label, 0, wx.ALIGN_CENTRE_VERTICAL),
+            (self.login_input, 1, wx.EXPAND),
+
+            (self.password_label, 0, wx.ALIGN_CENTRE_VERTICAL),
+            (self.password_input, 1, wx.EXPAND),
+        ])
+
+        cp.SetSizer(sizer)
+
+        return cp
+
+    def OnRunButton(self, event):
+        if self.show_imap_host_port:
+            self.mode.set_host_port_database_protocol(
+                self.host_input.GetValue(),
+                self.port_input.GetValue(),
+                self.database_input.GetValue(),
+                self.protocol_input.GetValue(),
+            )
+
+        self.mode.set_credentials(
+            self.login_input.GetValue(),
+            self.password_input.GetValue()
+        )
+
+        if self.show_imap_host_port:
+            self.host_input.Disable()
+            self.port_input.Disable()
+
+        self.database_input.Disable()
+        self.protocol_input.Disable()
+        self.login_input.Disable()
+        self.password_input.Disable()
+        self.run_button.Hide()
+        self.cancel_button.Show()
+        self.Layout()
+
+        self.mode.bind(modes.EVT_STATUS_CHANGED, self.OnStatusChanged)
+        threading.Thread(target=self.mode.loop).start()
 
 
 #==============================================================================

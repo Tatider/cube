@@ -1,13 +1,15 @@
 # -*- coding: utf-8; -*-
 
-import wx
 import imaplib
-import socket
-import urllib2
 import json
-import threading
 import logging
+import oerplib
+import socket
+import threading
+import urllib2
+import wx
 
+from oerplib.error import RPCError
 from time import sleep
 from wx.lib.newevent import NewEvent
 
@@ -187,6 +189,102 @@ class SlackMode(ImapMode):
         if res:
             self._logger.info('Нових писем: %s', res)
         return res
+
+
+class OdooMode(ImapMode):
+    """
+    Class for connection to the Odoo8
+    """
+
+    def __init__(self, device, interval=90):
+        self._database = None
+        self._protocol = "xmlrpc+ssl"
+        self._prev_count_of_tasks = 0
+        self._prev_count_of_issues = 0
+        self._init_logging()
+        super(OdooMode, self).__init__(device, interval)
+
+    def _init_logging(self):
+        logger = logging.getLogger(OdooMode.__name__)
+        logger.setLevel(logging.DEBUG)
+        console_handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - - %(levelname)s: '
+                                      '%(message)s')
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+        self._logger = logger
+
+    def set_host_port_database_protocol(self, host, port, database, protocol="xmlrpc+ssl"):
+        """Set host, port and database for connection"""
+        self._database = database
+        self._protocol = protocol
+        super(OdooMode, self).set_host_port(host, port)
+
+    def loop(self):
+        self._stopped = False
+        while not self._stopped:
+            self.set_status(u"Проверка почты…")
+            tasks, issues = 0, 0
+
+            try:
+                tasks, issues = self._fetch_unread_count()
+                message = u'Задачи: {0} | Вопросы: {1}'.format(
+                    tasks,
+                    issues,
+                )
+            except RPCError as e:
+                self._logger.error('Got a problem in function "loop"!', exc_info=True)
+                message = u"Ошибка соединения с базой данных"
+
+            self.set_status(message)
+
+            if self._stopped:
+                break
+
+            if tasks > self._prev_count_of_tasks:
+                self.device.blink_green()
+
+            if issues > self._prev_count_of_issues:
+                self.device.blink_red()
+
+            self.device.go_orange()
+
+            self._prev_count_of_tasks = tasks
+            self._prev_count_of_issues = issues
+
+            countdown = self.interval
+            while countdown > 0 and not self._stopped:
+                sleep(0.1)
+                countdown -= 0.1
+                self.set_status(u"{} ~ {:.0f}".format(message, countdown))
+
+    def _fetch_unread_count(self):
+        """Connect to the database and count unseen messages"""
+        connection = oerplib.OERP(self._host, protocol=self._protocol, port=self._port)
+        self._logger.info('Success connection')
+        user = connection.login(self._login, self._password, self._database)
+        self._logger.info('Success logging')
+
+        try:
+            tasks = connection.search(
+                'project.task',
+                [('message_unread','=',True)]
+            )
+        except RPCError as e:
+            self._logger.error('Got a problem with counting of tasks!', exc_info=True)
+            tasks = []
+
+        try:
+            issues = connection.search(
+                'project.issue',
+                [('message_unread','=',True)]
+            )
+        except RPCError as e:
+            self._logger.error('Got a problem with counting of issues!', exc_info=True)
+            issues = []
+
+        unseen = (len(tasks), len(issues),)
+        return unseen
 
 
 class LoginError(Exception):
