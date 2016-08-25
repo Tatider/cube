@@ -268,7 +268,7 @@ class OdooMode(ImapMode):
         try:
             tasks = connection.search(
                 'project.task',
-                [('message_unread','=',True)]
+                [('message_unread', '=', True)]
             )
         except RPCError as e:
             self._logger.error('Got a problem with counting of tasks!', exc_info=True)
@@ -277,7 +277,7 @@ class OdooMode(ImapMode):
         try:
             issues = connection.search(
                 'project.issue',
-                [('message_unread','=',True)]
+                [('message_unread', '=', True)]
             )
         except RPCError as e:
             self._logger.error('Got a problem with counting of issues!', exc_info=True)
@@ -285,6 +285,10 @@ class OdooMode(ImapMode):
 
         unseen = (len(tasks), len(issues),)
         return unseen
+
+    def stop(self):
+        self.device.disconnect()
+        super(OdooMode, self).stop()
 
 
 class LoginError(Exception):
