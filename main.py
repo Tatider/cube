@@ -562,7 +562,9 @@ class MainFrame(wx.Frame):
         if platform.system() == 'Windows':
             self.Hide()
         else:
+            self.device.disconnect()
             self.Destroy()
+            quit()
 
 
 
